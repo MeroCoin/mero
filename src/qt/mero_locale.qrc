@@ -1,0 +1,28 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/translations">
+        <file alias="bg">locale/mero_bg.qm</file>
+        <file alias="ca">locale/mero_ca.qm</file>
+        <file alias="cs">locale/mero_cs.qm</file>
+        <file alias="da">locale/mero_da.qm</file>
+        <file alias="de">locale/mero_de.qm</file>
+        <file alias="en">locale/mero_en.qm</file>
+        <file alias="en_US">locale/mero_en_US.qm</file>
+        <file alias="es">locale/mero_es.qm</file>
+        <file alias="fi">locale/mero_fi.qm</file>
+        <file alias="fr_FR">locale/mero_fr_FR.qm</file>
+        <file alias="it">locale/mero_it.qm</file>
+        <file alias="ja">locale/mero_ja.qm</file>
+        <file alias="ko_KR">locale/mero_ko_KR.qm</file>
+        <file alias="nl">locale/mero_nl.qm</file>
+        <file alias="pl">locale/mero_pl.qm</file>
+        <file alias="pt">locale/mero_pt.qm</file>
+        <file alias="pt_BR">locale/mero_pt_BR.qm</file>
+        <file alias="ro_RO">locale/mero_ro_RO.qm</file>
+        <file alias="ru">locale/mero_ru.qm</file>
+        <file alias="sk">locale/mero_sk.qm</file>
+        <file alias="sv">locale/mero_sv.qm</file>
+        <file alias="uk">locale/mero_uk.qm</file>
+        <file alias="zh_CN">locale/mero_zh_CN.qm</file>
+        <file alias="zh_TW">locale/mero_zh_TW.qm</file>
+    </qresource>
+</RCC>
