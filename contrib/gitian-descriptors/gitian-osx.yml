@@ -1,7 +1,6 @@
 ---
 name: "mero-osx-1.2"
 enable_cache: true
-distro: "ubuntu"
 suites:
 - "bionic"
 architectures:
