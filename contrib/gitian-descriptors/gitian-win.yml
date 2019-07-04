@@ -1,5 +1,5 @@
 ---
-name: "mero-win-3.3"
+name: "mero-win-1.2"
 enable_cache: true
 distro: "ubuntu"
 suites:
@@ -24,7 +24,8 @@ packages:
 - "python3"
 - "rename"
 remotes:
-- "url": "https://github.com/MeroCoin/mero.git"
+##- "url": "https://github.com/MeroCoin/mero.git"
+- "url": "/home/gitianuser/mero"
   "dir": "mero"
 files: []
 script: |

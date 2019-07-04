@@ -1,5 +1,5 @@
 ---
-name: "mero-osx-3.3"
+name: "mero-osx-1.2"
 enable_cache: true
 distro: "ubuntu"
 suites:
@@ -29,7 +29,8 @@ packages:
 - "python3-setuptools"
 - "fonts-tuffy"
 remotes:
-- "url": "https://github.com/MeroCoin/mero.git"
+##- "url": "https://github.com/MeroCoin/mero.git"
+- "url": "/home/gitianuser/mero"
   "dir": "mero"
 files:
 - "MacOSX10.11.sdk.tar.gz"
