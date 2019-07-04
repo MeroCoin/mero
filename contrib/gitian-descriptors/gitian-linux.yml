@@ -33,8 +33,7 @@ packages:
 - "ca-certificates"
 - "python3"
 remotes:
-##- "url": "https://github.com/MeroCoin/mero.git"
-- "url": "/home/gitianuser/mero"
+- "url": "https://github.com/MeroCoin/mero.git"
   "dir": "mero"
 files: []
 script: |

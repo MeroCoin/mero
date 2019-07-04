@@ -24,8 +24,7 @@ packages:
 - "python3"
 - "rename"
 remotes:
-##- "url": "https://github.com/MeroCoin/mero.git"
-- "url": "/home/gitianuser/mero"
+- "url": "https://github.com/MeroCoin/mero.git"
   "dir": "mero"
 files: []
 script: |
