@@ -43,3 +43,7 @@
 +    QMAKE_CFLAGS += -I$$XCB_DIR/include -I$$XCB_DIR/sysinclude $$QMAKE_CFLAGS_XCB
 +    QMAKE_CXXFLAGS += -I$$XCB_DIR/include -I$$XCB_DIR/sysinclude $$QMAKE_CFLAGS_XCB
 +}
++
+ PLUGIN_TYPE = platforms
+ PLUGIN_CLASS_NAME = QXcbIntegrationPlugin
+ !equals(TARGET, $$QT_DEFAULT_QPA_PLUGIN): PLUGIN_EXTENDS = -
