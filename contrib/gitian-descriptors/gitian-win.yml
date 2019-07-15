@@ -22,7 +22,6 @@ packages:
 - "zip"
 - "ca-certificates"
 - "python"
-- "python3"
 - "rename"
 remotes:
 - "url": "https://github.com/MeroCoin/mero.git"
