@@ -1,15 +1,15 @@
 ---
-name: "mero-osx-1.2"
+name: "pivx-osx-3.0"
 enable_cache: true
 suites:
 - "bionic"
 architectures:
 - "amd64"
-packages:
+packages: 
 - "ca-certificates"
 - "curl"
 - "g++"
-- "git"
+- "git-core"
 - "pkg-config"
 - "autoconf"
 - "librsvg2-bin"
@@ -23,19 +23,20 @@ packages:
 - "libcap-dev"
 - "libz-dev"
 - "libbz2-dev"
+- "python"
+- "python-dev"
+- "python-setuptools"
+- "fonts-tuffy"
 - "python3"
 - "python3-dev"
 - "python3-setuptools"
-- "fonts-tuffy"
 remotes:
-- "url": "https://github.com/MeroCoin/mero.git" 
-  "dir": "mero"
+- "url": "https://github.com/pivx-project/pivx.git"
+  "dir": "pivx"
 files:
 - "MacOSX10.11.sdk.tar.gz"
 script: |
-  set -e -o pipefail
-
-  WRAP_DIR=$HOME/wrapped
+ WRAP_DIR=$HOME/wrapped
   HOSTS="x86_64-apple-darwin14"
   CONFIGFLAGS="--enable-reduce-exports --disable-bench --disable-gui-tests GENISOIMAGE=$WRAP_DIR/genisoimage"
   FAKETIME_HOST_PROGS=""
@@ -86,7 +87,7 @@ script: |
   create_per-host_faketime_wrappers "2000-01-01 12:00:00"
   export PATH=${WRAP_DIR}:${PATH}
 
-  cd mero
+  cd pivx
   BASEPREFIX=`pwd`/depends
 
   mkdir -p ${BASEPREFIX}/SDKs
@@ -107,14 +108,14 @@ script: |
   ./autogen.sh
   CONFIG_SITE=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`/share/config.site ./configure --prefix=/
   make dist
-  SOURCEDIST=`echo mero-*.tar.gz`
+  SOURCEDIST=`echo pivx-*.tar.gz`
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
 
   # Correct tar file order
   mkdir -p temp
   pushd temp
   tar xf ../$SOURCEDIST
-  find mero-* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
+  find pivx-* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
   popd
 
   # Workaround for tarball not building with the bare tag version (prep)
