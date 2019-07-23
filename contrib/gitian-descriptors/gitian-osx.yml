@@ -1,5 +1,5 @@
 ---
-name: "pivx-osx-3.0"
+name: "mero-osx-1.2"
 enable_cache: true
 suites:
 - "bionic"
@@ -31,8 +31,8 @@ packages:
 - "python3-dev"
 - "python3-setuptools"
 remotes:
-- "url": "https://github.com/pivx-project/pivx.git"
-  "dir": "pivx"
+- "url": "https://github.com/MeroCoin/mero.git"
+  "dir": "mero"
 files:
 - "MacOSX10.11.sdk.tar.gz"
 script: |
