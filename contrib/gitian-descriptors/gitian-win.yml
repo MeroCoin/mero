@@ -21,7 +21,7 @@ packages:
 - "nsis"
 - "zip"
 - "ca-certificates"
-- "python3"
+- "python"
 - "rename"
 remotes:
 - "url": "https://github.com/MeroCoin/mero.git"
