@@ -55,6 +55,7 @@ BlockMap mapBlockIndex;
 map<uint256, uint256> mapProofOfStake;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 map<unsigned int, unsigned int> mapHashedBlocks;
+map<COutPoint, int> mapStakeSpent;
 CChain chainActive;
 CBlockIndex* pindexBestHeader = NULL;
 int64_t nTimeBestReceived = 0;
@@ -254,7 +255,7 @@ struct CBlockReject {
     uint256 hashBlock;
 };
 
-/**
+ /**
  * Maintain validation-specific state about nodes, protected by cs_main, instead
  * by CNode's own locks. This simplifies asynchronous operation, where
  * processing of incoming data is done after the ProcessMessage call returns,
@@ -287,6 +288,7 @@ struct CNodeState {
     int nBlocksInFlight;
     //! Whether we consider this a preferred download peer.
     bool fPreferredDownload;
+
 
     CNodeState()
     {
@@ -2025,6 +2027,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                 if (coins->vout.size() < out.n + 1)
                     coins->vout.resize(out.n + 1);
                 coins->vout[out.n] = undo.txout;
+				mapStakeSpent.erase(out);
             }
         }
     }
@@ -2257,6 +2260,28 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     if (fTxIndex)
         if (!pblocktree->WriteTxIndex(vPos))
             return state.Abort("Failed to write transaction index");
+		
+		    // add new entries
+    for (const CTransaction tx: block.vtx) {
+        if (tx.IsCoinBase())
+            continue;
+        for (const CTxIn in: tx.vin) {
+            LogPrint("map", "mapStakeSpent: Insert %s | %u\n", in.prevout.ToString(), pindex->nHeight);
+            mapStakeSpent.insert(std::make_pair(in.prevout, pindex->nHeight));
+        }
+    }
+
+
+    // delete old entries
+    for (auto it = mapStakeSpent.begin(); it != mapStakeSpent.end();) {
+        if (it->second < pindex->nHeight - Params().MaxReorganizationDepth()) {
+            LogPrint("map", "mapStakeSpent: Erase %s | %u\n", it->first.ToString(), it->second);
+            it = mapStakeSpent.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
 
     // add this block to the view's block chain
     view.SetBestBlock(pindex->GetBlockHash());
@@ -3126,7 +3151,28 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
         for (unsigned int i = 2; i < block.vtx.size(); i++)
             if (block.vtx[i].IsCoinStake())
                 return state.DoS(100, error("CheckBlock() : more than one coinstake"));
-    }
+                  
+ 				    //additional check against false PoS attack
+
+            		// Check for coin age.
+            		// First try finding the previous transaction in database.
+            		CTransaction txPrev;
+            		uint256 hashBlockPrev;
+            		if (!GetTransaction(block.vtx[1].vin[0].prevout.hash, txPrev, hashBlockPrev, true))
+            			return state.DoS(100, error("CheckBlock() : stake failed to find vin transaction"));
+            		// Find block in map.
+            		CBlockIndex* pindex = NULL;
+            		BlockMap::iterator it = mapBlockIndex.find(hashBlockPrev);
+            		if (it != mapBlockIndex.end())
+            			pindex = it->second;
+            		else
+            			return state.DoS(100, error("CheckBlock() :  stake failed to find block index"));
+            		// Check block time vs stake age requirement.
+            		if (pindex->GetBlockHeader().nTime + nStakeMinAge > GetAdjustedTime())
+            			return state.DoS(100, error("CheckBlock() : stake under min. stake age"));
+
+                }
+
 
     // ----------- swiftTX transaction scanning -----------
 
@@ -3220,7 +3266,9 @@ bool CheckWork(const CBlock block, CBlockIndex* const pindexPrev)
     if (block.nBits != nBitsRequired)
         return error("%s : incorrect proof of work at %d", __func__, pindexPrev->nHeight + 1);
 
+        bool isPoS = false;
     if (block.IsProofOfStake()) {
+        isPoS = true;
         uint256 hashProofOfStake;
         uint256 hash = block.GetHash();
 
@@ -3392,6 +3440,59 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
     }
 
     int nHeight = pindex->nHeight;
+
+    if (block.IsProofOfStake()) {
+        LOCK(cs_main);
+		
+		CCoinsViewCache coins(pcoinsTip);
+
+         if (!coins.HaveInputs(block.vtx[1])) {
+            // the inputs are spent at the chain tip so we should look at the recently spent outputs
+
+             for (CTxIn in : block.vtx[1].vin) {
+                auto it = mapStakeSpent.find(in.prevout);
+                if (it == mapStakeSpent.end()) {
+                    return false;
+                }
+                if (it->second <= pindexPrev->nHeight) {
+                    return false;
+                }
+            }
+        }
+
+        // Check whether is a fork or not
+        if (pindexPrev != nullptr && !chainActive.Contains(pindexPrev)) {
+
+            // Start at the block we're adding on to
+            CBlockIndex *prev = pindexPrev;
+            CTransaction &stakeTxIn = block.vtx[1];
+            CBlock bl;
+            // Go backwards on the forked chain up to the split
+            do {
+            	   if(!ReadBlockFromDisk(bl, prev))
+            	                    // Previous block not on disk
+            	                    return error("%s: previous block %s not on disk", __func__, prev->GetBlockHash().GetHex());
+
+
+            	                // Loop through every input from said block
+            	                for (CTransaction t : bl.vtx) {
+            	                    for (CTxIn in: t.vin) {
+            	                        // Loop through every input of the staking tx
+            	                        for (CTxIn stakeIn : stakeTxIn.vin) {
+            	                            // if it's already spent
+            	                            if (stakeIn.prevout == in.prevout) {
+            	                                // reject the block
+            	                                return state.DoS(100,
+            	                                                 error("%s: input already spent on a previous block", __func__));
+            	                            }
+            	                        }
+            	                    }
+            	                }
+            	                prev = prev->pprev;
+
+            	            } while (!chainActive.Contains(prev));
+            	        }
+            	    }
 
     // Write block to history file
     try {
@@ -5831,3 +5932,4 @@ public:
         mapOrphanTransactionsByPrev.clear();
     }
 } instance_of_cmaincleanup;
+
