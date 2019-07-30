@@ -359,6 +359,7 @@ AC_DEFUN([_BITCOIN_QT_FIND_STATIC_PLUGINS],[
       if test -d "$qt_plugin_path/accessible"; then
         QT_LIBS="$QT_LIBS -L$qt_plugin_path/accessible"
       fi
+
      if test "x$use_pkgconfig" = xyes; then
      : dnl
      m4_ifdef([PKG_CHECK_MODULES],[
@@ -373,6 +374,7 @@ AC_DEFUN([_BITCOIN_QT_FIND_STATIC_PLUGINS],[
          PKG_CHECK_MODULES([QTFB], [Qt5FbSupport], [QT_LIBS="-lQt5FbSupport $QT_LIBS"])
                 fi
        if test "x$TARGET_OS" = xlinux; then
+
          PKG_CHECK_MODULES([X11XCB], [x11-xcb], [QT_LIBS="$X11XCB_LIBS $QT_LIBS"])
          if ${PKG_CONFIG} --exists "Qt5Core >= 5.5" 2>/dev/null; then
            PKG_CHECK_MODULES([QTXCBQPA], [Qt5XcbQpa], [QT_LIBS="$QTXCBQPA_LIBS $QT_LIBS"])
@@ -396,6 +398,7 @@ AC_DEFUN([_BITCOIN_QT_FIND_STATIC_PLUGINS],[
                #if QT_VERSION < 0x050600 || QT_VERSION_MINOR < 6
                choke
                #endif
+               
              ]])],
            [bitcoin_cv_need_platformsupport=yes],
            [bitcoin_cv_need_platformsupport=no])
