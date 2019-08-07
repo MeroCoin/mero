@@ -24,7 +24,7 @@ packages:
 - "python"
 - "rename"
 remotes:
-- "url": "https://github.com/MeroCoin/mero.git"
+- "url": "https://github.com/Dud-man/mero"
   "dir": "mero"
 files: []
 script: |
