@@ -15,6 +15,7 @@
 #include <assert.h>
 
 #include <boost/assign/list_of.hpp>
+#include "masternode.h"
 
 using namespace std;
 using namespace boost::assign;
@@ -55,10 +56,11 @@ static void convertSeed6(std::vector<CAddress>& vSeedsOut, const SeedSpec6* data
 static Checkpoints::MapCheckpoints mapCheckpoints =
     boost::assign::map_list_of
     (0, uint256("000003fdf2754358f30407b7a37566dc2138dd93159a2a24a45bbdf57d77806b"))
-    (50, uint256("0000014b4cdfa8ec5fdce354246d485636db844d7c0e1b9b41cfc4020dd79f8e"));
+    (50, uint256("0000014b4cdfa8ec5fdce354246d485636db844d7c0e1b9b41cfc4020dd79f8e"))
+	(576524, uint256("52f58d835ee344f1179a50e99c361cd4e3a85c6030e60a1cef3a58c8febe5837"));
 static const Checkpoints::CCheckpointData data = {
     &mapCheckpoints,
-    1530394250, // * UNIX timestamp of last checkpoint block
+    1565208341, // * UNIX timestamp of last checkpoint block
     0,          // * total number of transactions between genesis and last checkpoint
                 //   (the tx=... number in the SetBestChain debug.log lines)
     2000        // * estimated number of transactions per day after checkpoint
@@ -110,7 +112,7 @@ public:
         nLastPOWBlock = 120;
         nMaturity = 40;
         nMasternodeCountDrift = 20;
-        nMasternodeCollateralLimit = 1000;
+        nMasternodeCollateralLimit = 5000;
         nModifierUpdateBlock = 615800;
         nMaxMoneyOut = 21000000 * COIN;
 
@@ -143,10 +145,10 @@ public:
         assert(hashGenesisBlock == uint256("000003fdf2754358f30407b7a37566dc2138dd93159a2a24a45bbdf57d77806b"));
         assert(genesis.hashMerkleRoot == uint256("a74181dfedb5fde7369e2422f09e3e35dfe4f8878351a9d254655e1c6e0cbb2b"));
 
-        vSeeds.push_back(CDNSSeedData("dns1.mero.network", "dns1.mero.network"));
-        vSeeds.push_back(CDNSSeedData("dns2.mero.network", "dns2.mero.network"));
-        vSeeds.push_back(CDNSSeedData("dns3.mero.network", "dns3.mero.network"));
-        vSeeds.push_back(CDNSSeedData("dns4.mero.network", "dns4.mero.network"));
+        vSeeds.push_back(CDNSSeedData("dnsseed.meroexplorer.com", "45.220.58.41"));
+        vSeeds.push_back(CDNSSeedData("194.67.200.44", "208.69.150.9"));
+        vSeeds.push_back(CDNSSeedData("80.211.133.202", "178.128.67.208"));
+        vSeeds.push_back(CDNSSeedData("207.148.83.37", "80.211.92.251"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 110);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 18);
@@ -184,6 +186,19 @@ public:
 };
 static CMainParams mainParams;
 
+std::string CChainParams::GetDevFeeRewardAddress()
+{
+	return "mU4PjRtjwFMjQZ1MP9XHEhESugcmrhQuMj";
+}
+
+CScript CChainParams::GetScriptForDevFeeDestination() {
+    CBitcoinAddress address(GetDevFeeRewardAddress().c_str());
+    assert(address.IsValid());
+
+    CScript script = GetScriptForDestination(address.Get());
+    return script;
+}
+
 /**
  * Testnet (v3)
  */
@@ -209,7 +224,7 @@ public:
         nLastPOWBlock = 200;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
-        nMasternodeCollateralLimit = 1000;
+        nMasternodeCollateralLimit = 5000;
         nModifierUpdateBlock = 51197; //approx Mon, 17 Apr 2017 04:00:00 GMT
         nMaxMoneyOut = 43199500 * COIN;
 
@@ -223,7 +238,7 @@ public:
         vFixedSeeds.clear();
         vSeeds.clear();
 
-        vSeeds.push_back(CDNSSeedData("dns1t.mero.network", "dns1t.mero.network"));
+        vSeeds.push_back(CDNSSeedData("45.220.58.41", "dns1t.mero.network"));
         vSeeds.push_back(CDNSSeedData("dns2t.mero.network", "dns2t.mero.network"));
         vSeeds.push_back(CDNSSeedData("dns3t.mero.network", "dns3t.mero.network"));
         vSeeds.push_back(CDNSSeedData("dns4t.mero.network", "dns4t.mero.network"));

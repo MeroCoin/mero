@@ -1683,8 +1683,9 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCou
         ret = blockValue * 0.75;
     }
 	  else {
-		ret = blockValue * 0.80;
+		ret = blockValue * 0.65;         //65%
 	}
+	 
 	return ret;
 }
 
@@ -3087,7 +3088,48 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
             REJECT_INVALID, "high-hash");
 
     return true;
+	
+	bool IsDevFeeValid(const CBlock& block, int nBlockHeight)
+{
+	const CTransaction& txNew = (block.IsProofOfStake() ? block.vtx[1] : block.vtx[0]);
+
+	CScript devRewardscriptPubKey = Params().GetScriptForDevFeeDestination();
+
+	bool found = false;
+        BOOST_FOREACH (CTxOut out, txNew.vout) {
+
+			/* CTxDestination address1;
+			ExtractDestination(out.scriptPubKey, address1);
+			CBitcoinAddress address2(address1);
+            LogPrintf("IsDevFeeValid: payee %s, value %f\n", address2.ToString(), out.nValue / COIN);
+			*/
+            if (devRewardscriptPubKey == out.scriptPubKey) {
+
+                //LogPrintf("Found dev fee address, value is %f, expected is %f\n", out.nValue / (float)COIN, GetBlockValue(nBlockHeight)*0.07/COIN);
+
+                CAmount blockValue = GetBlockValue(nBlockHeight);
+                CAmount devfee = 0;
+                if(nBlockHeight >= 590000){
+                   devfee = blockValue * 0.15; //15%
+                }
+                else{
+                   devfee = blockValue * 0; //0%
+                }
+
+
+ 				if(out.nValue >= devfee) {
+					found = true;
+					break;
+				}
+                else
+                    LogPrintf("IsDevFeeValid: cannot find the dev fee in the transaction list.\n");
+            }
+        }
+
+     return found;
+
 }
+
 
 bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig)
 {
@@ -3443,8 +3485,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
 
     if (block.IsProofOfStake()) {
         LOCK(cs_main);
-		
-		CCoinsViewCache coins(pcoinsTip);
+
+         CCoinsViewCache coins(pcoinsTip);
 
          if (!coins.HaveInputs(block.vtx[1])) {
             // the inputs are spent at the chain tip so we should look at the recently spent outputs
@@ -3460,39 +3502,36 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CBlockIndex** ppindex, 
             }
         }
 
-        // Check whether is a fork or not
-        if (pindexPrev != nullptr && !chainActive.Contains(pindexPrev)) {
+         // if this is on a fork
+        if (!chainActive.Contains(pindexPrev) && pindexPrev != NULL) {
+            // start at the block we're adding on to
+            CBlockIndex *last = pindexPrev;
 
-            // Start at the block we're adding on to
-            CBlockIndex *prev = pindexPrev;
-            CTransaction &stakeTxIn = block.vtx[1];
-            CBlock bl;
-            // Go backwards on the forked chain up to the split
-            do {
-            	   if(!ReadBlockFromDisk(bl, prev))
-            	                    // Previous block not on disk
-            	                    return error("%s: previous block %s not on disk", __func__, prev->GetBlockHash().GetHex());
+             // while that block is not on the main chain
+            while (!chainActive.Contains(last) && pindexPrev != NULL) {
+                CBlock bl;
+                ReadBlockFromDisk(bl, last);
+                // loop through every spent input from said block
+                for (CTransaction t : bl.vtx) {
+                    for (CTxIn in: t.vin) {
+                        // loop through every spent input in the staking transaction of the new block
+                        for (CTxIn stakeIn : block.vtx[1].vin) {
+                            // if they spend the same input
+                            if (stakeIn.prevout == in.prevout) {
+                                // reject the block
+                                return false;
+                            }
+                        }
+                    }
+                }
 
 
-            	                // Loop through every input from said block
-            	                for (CTransaction t : bl.vtx) {
-            	                    for (CTxIn in: t.vin) {
-            	                        // Loop through every input of the staking tx
-            	                        for (CTxIn stakeIn : stakeTxIn.vin) {
-            	                            // if it's already spent
-            	                            if (stakeIn.prevout == in.prevout) {
-            	                                // reject the block
-            	                                return state.DoS(100,
-            	                                                 error("%s: input already spent on a previous block", __func__));
-            	                            }
-            	                        }
-            	                    }
-            	                }
-            	                prev = prev->pprev;
+                 // go to the parent block
+                last = pindexPrev->pprev;
+            }
+        }
+    }
 
-            	            } while (!chainActive.Contains(prev));
-            	        }
-            	    }
 
     // Write block to history file
     try {
