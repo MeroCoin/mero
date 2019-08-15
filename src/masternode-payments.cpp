@@ -359,7 +359,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
 	txNew.vout[payments-1].scriptPubKey = devRewardscriptPubKey;
 	txNew.vout[payments-1].nValue = devfee;
-    }
+
 }
 
 int CMasternodePayments::GetMinMasternodePaymentsProto()
