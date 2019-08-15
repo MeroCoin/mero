@@ -3089,6 +3089,8 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
 
     return true;
 	
+}
+	
 	bool IsDevFeeValid(const CBlock& block, int nBlockHeight)
 {
 	const CTransaction& txNew = (block.IsProofOfStake() ? block.vtx[1] : block.vtx[0]);
