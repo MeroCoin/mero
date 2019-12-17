@@ -113,7 +113,7 @@ public:
         nMaturity = 40;
         nMasternodeCountDrift = 20;
         nMasternodeCollateralLimit = 5000;
-        nModifierUpdateBlock = 615800;
+        nModifierUpdateBlock = 770000;
         nMaxMoneyOut = 21000000 * COIN;
 
         /**
@@ -188,7 +188,7 @@ static CMainParams mainParams;
 
 std::string CChainParams::GetDevFeeRewardAddress()
 {
-	return "mU4PjRtjwFMjQZ1MP9XHEhESugcmrhQuMj";
+	return "mbnU1Kf9sb4jZDZTR4P5iE9xg3641D1fzo";
 }
 
 CScript CChainParams::GetScriptForDevFeeDestination() {
